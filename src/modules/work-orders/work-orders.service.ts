@@ -260,30 +260,59 @@ async getResourceMonitorLoad(tenantId: string, productLineId: string) {
   }
 
 async getKanbanBoard(tenantId: string, productLineId: string) {
-    // Archiving Rule: Hide completed orders older than 7 days
     const archiveThreshold = new Date();
     archiveThreshold.setDate(archiveThreshold.getDate() - 7);
 
-    return await db.select({
+    // 1. Define the base selection to keep code DRY (Don't Repeat Yourself)
+    const baseSelection = {
       id: schema.workOrders.id,
       batchNumber: schema.workOrders.batchNumber,
       targetQuantity: schema.workOrders.targetQuantity,
       status: schema.workOrders.status,
       createdAt: schema.workOrders.createdAt,
-    })
-    .from(schema.workOrders)
-    .where(and(
-      eq(schema.workOrders.tenantId, tenantId),
-      eq(schema.workOrders.productLineId, productLineId),
-      or(
-        inArray(schema.workOrders.status, ['planned', 'in_progress']),
-        and(
+    };
+
+    // 2. Run 3 parallel queries using Promise.all for maximum performance
+    // Each query explicitly targets one status and strictly limits to 10 rows
+    const [planned, inProgress, completed] = await Promise.all([
+      
+      // Fetch up to 10 PLANNED
+      db.select(baseSelection)
+        .from(schema.workOrders)
+        .where(and(
+          eq(schema.workOrders.tenantId, tenantId),
+          eq(schema.workOrders.productLineId, productLineId),
+          eq(schema.workOrders.status, 'planned')
+        ))
+        .orderBy(desc(schema.workOrders.createdAt))
+        .limit(10),
+
+      // Fetch up to 10 IN PROGRESS
+      db.select(baseSelection)
+        .from(schema.workOrders)
+        .where(and(
+          eq(schema.workOrders.tenantId, tenantId),
+          eq(schema.workOrders.productLineId, productLineId),
+          eq(schema.workOrders.status, 'in_progress')
+        ))
+        .orderBy(desc(schema.workOrders.createdAt))
+        .limit(10),
+
+      // Fetch up to 10 COMPLETED (within the last 7 days)
+      db.select(baseSelection)
+        .from(schema.workOrders)
+        .where(and(
+          eq(schema.workOrders.tenantId, tenantId),
+          eq(schema.workOrders.productLineId, productLineId),
           eq(schema.workOrders.status, 'completed'),
-          gte(schema.workOrders.createdAt, archiveThreshold) // Fallback to createdAt if completedDate isn't set yet
-        )
-      )
-    ))
-    .orderBy(desc(schema.workOrders.createdAt)); // Newest at top
+          gte(schema.workOrders.createdAt, archiveThreshold)
+        ))
+        .orderBy(desc(schema.workOrders.createdAt))
+        .limit(10)
+    ]);
+
+    // 3. Flatten the arrays back into a single array for the frontend
+    return [...planned, ...inProgress, ...completed];
   }
 
 async findOne(tenantId: string, id: string) {
