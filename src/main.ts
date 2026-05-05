@@ -5,8 +5,13 @@ import * as path from 'path';
 
 async function bootstrap() {
   // Dynamically resolve the absolute path from the project root
-  const serviceAccountPath = path.resolve(process.cwd(), 'firebase-service-account.json');
-  const serviceAccount = require(serviceAccountPath);
+// If running on Render, use their secure secrets directory. 
+  // Otherwise, use the local project root.
+  const serviceAccountPath = process.env.RENDER 
+    ? '/etc/secrets/firebase-service-account.json' 
+    : path.resolve(process.cwd(), 'firebase-service-account.json');
+    
+    const serviceAccount = require(serviceAccountPath);
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
