@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Import Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <IMPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>Vouchers</REPORTNAME>
+      </REQUESTDESC>
+      <REQUESTDATA/>
+    </IMPORTDATA>
+  </BODY>
+</ENVELOPE>
