@@ -5,7 +5,7 @@ import * as path from 'path';
 
 async function bootstrap() {
   // Dynamically resolve the absolute path from the project root
-  const serviceAccountPath = path.resolve(process.cwd(), 'secrets/firebase-service-account.json');
+  const serviceAccountPath = path.resolve(process.cwd(), 'firebase-service-account.json');
   const serviceAccount = require(serviceAccountPath);
 
   admin.initializeApp({
