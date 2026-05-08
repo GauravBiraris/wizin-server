@@ -97,6 +97,7 @@ async getJournalEntries(tenantId: string, startDateStr?: string, endDateStr?: st
       companyAddress: schema.tenantSettings.companyAddress,
       companyPhone: schema.tenantSettings.companyPhone,
       companyGstin: schema.tenantSettings.companyGstin,
+      defaultGstRate: schema.tenantSettings.defaultGstRate,
     })
     .from(schema.tenantSettings)
     .where(eq(schema.tenantSettings.tenantId, tenantId));
@@ -105,13 +106,14 @@ async getJournalEntries(tenantId: string, startDateStr?: string, endDateStr?: st
   }
 
   // Update the company details
-  async updateTenantDetails(tenantId: string, payload: { companyName?: string, companyAddress?: string, companyPhone?: string, companyGstin?: string }) {
+  async updateTenantDetails(tenantId: string, payload: { companyName?: string, companyAddress?: string, companyPhone?: string, companyGstin?: string, defaultGstRate?: number }) {
     const [updated] = await db.update(schema.tenantSettings)
       .set({
         companyName: payload.companyName,
         companyAddress: payload.companyAddress,
         companyPhone: payload.companyPhone,
         companyGstin: payload.companyGstin,
+        defaultGstRate: payload.defaultGstRate ? payload.defaultGstRate.toString() : '0.00',
       })
       .where(eq(schema.tenantSettings.tenantId, tenantId))
       .returning();

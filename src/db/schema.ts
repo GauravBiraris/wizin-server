@@ -328,6 +328,7 @@ export const tenantSettings = pgTable('tenant_settings', {
   companyAddress: text('company_address'),
   companyPhone: varchar('company_phone', { length: 50 }),
   companyGstin: varchar('company_gstin', { length: 50 }),
+  defaultGstRate: decimal('default_gst_rate', { precision: 5, scale: 2 }).default('18.00'),
   
   // Accounts
   finishedGoodsAssetId: uuid('fg_asset_id').references(() => accounts.id),

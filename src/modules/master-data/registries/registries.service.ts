@@ -188,11 +188,57 @@ async updateMachine(tenantId: string, id: string, dto: { name: string; hourlyCos
     });
   }
 
+  
+
   async getCustomers(tenantId: string) {
     return await db.select()
       .from(schema.customers)
       .where(eq(schema.customers.tenantId, tenantId))
       .orderBy(desc(schema.customers.createdAt));
+  }
+  
+  // 1. Create Customer
+  async createCustomer(tenantId: string, payload: { name: string, email?: string, phone?: string, address?: string, gstin?: string, creditLimit?: number }) {
+    const [customer] = await db.insert(schema.customers).values({
+      tenantId,
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone,
+      address: payload.address,
+      gstin: payload.gstin?.toUpperCase(), // Standardize GSTIN
+      creditLimit: payload.creditLimit?.toString() || '0.00'
+    }).returning();
+    
+    return customer;
+  }
+
+  // 2. Update Customer
+  async updateCustomer(tenantId: string, id: string, payload: any) {
+    const [customer] = await db.update(schema.customers)
+      .set({
+        ...payload,
+        gstin: payload.gstin?.toUpperCase(),
+        creditLimit: payload.creditLimit?.toString()
+      })
+      .where(and(eq(schema.customers.id, id), eq(schema.customers.tenantId, tenantId)))
+      .returning();
+      
+    return customer;
+  }
+
+  // 3. Delete Customer (With safety check)
+  async deleteCustomer(tenantId: string, id: string) {
+    try {
+      await db.delete(schema.customers)
+        .where(and(eq(schema.customers.id, id), eq(schema.customers.tenantId, tenantId)));
+      return { success: true };
+    } catch (error: any) {
+      // If the database throws a foreign key violation (code 23503 in Postgres)
+      if (error.code === '23503') {
+        throw new BadRequestException("Cannot delete this customer because they have linked Sales Orders. Please edit their details instead.");
+      }
+      throw new BadRequestException("Failed to delete customer.");
+    }
   }
   
 }

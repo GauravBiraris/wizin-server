@@ -59,5 +59,23 @@ export class RegistriesController {
   async getCustomers(@Request() req: any) {
     return this.registriesService.getCustomers(req.user.tenantId);
   }
+
+  @Post('customers')
+  @Roles('ADMIN', 'MANAGER', 'SUPERVISOR')
+  async createCustomer(@Body() payload: any, @Request() req: any) {
+    return this.registriesService.createCustomer(req.user.tenantId, payload);
+  }
+
+  @Put('customers/:id')
+  @Roles('ADMIN', 'MANAGER', 'SUPERVISOR')
+  async updateCustomer(@Param('id') id: string, @Body() payload: any, @Request() req: any) {
+    return this.registriesService.updateCustomer(req.user.tenantId, id, payload);
+  }
+
+  @Delete('customers/:id')
+  @Roles('ADMIN', 'MANAGER') // Only higher-ups can delete
+  async deleteCustomer(@Param('id') id: string, @Request() req: any) {
+    return this.registriesService.deleteCustomer(req.user.tenantId, id);
+  }
   
 }
