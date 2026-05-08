@@ -324,6 +324,10 @@ export const journalLines = pgTable('journal_lines', {
 
 export const tenantSettings = pgTable('tenant_settings', {
   tenantId: uuid('tenant_id').references(() => tenants.id).primaryKey(), // 1-to-1 relationship with Tenant
+  companyName: varchar('company_name', { length: 255 }),
+  companyAddress: text('company_address'),
+  companyPhone: varchar('company_phone', { length: 50 }),
+  companyGstin: varchar('company_gstin', { length: 50 }),
   
   // Accounts
   finishedGoodsAssetId: uuid('fg_asset_id').references(() => accounts.id),
@@ -354,6 +358,7 @@ export const customers = pgTable('customers', {
   phone: varchar('phone', { length: 50 }),
   address: text('address'),
   creditLimit: decimal('credit_limit', { precision: 12, scale: 2 }).default('0.00'),
+  gstin: varchar('gstin', { length: 50 }),
   createdAt: timestamp('created_at').defaultNow(),
 });
 

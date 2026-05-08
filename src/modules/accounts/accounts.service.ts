@@ -90,7 +90,34 @@ async getJournalEntries(tenantId: string, startDateStr?: string, endDateStr?: st
       lines: lines.filter(l => l.entryId === entry.id)
     }));
   }
+// Fetch specific company details for the invoice/settings page
+  async getTenantDetails(tenantId: string) {
+    const [details] = await db.select({
+      companyName: schema.tenantSettings.companyName,
+      companyAddress: schema.tenantSettings.companyAddress,
+      companyPhone: schema.tenantSettings.companyPhone,
+      companyGstin: schema.tenantSettings.companyGstin,
+    })
+    .from(schema.tenantSettings)
+    .where(eq(schema.tenantSettings.tenantId, tenantId));
+    
+    return details || {};
+  }
 
+  // Update the company details
+  async updateTenantDetails(tenantId: string, payload: { companyName?: string, companyAddress?: string, companyPhone?: string, companyGstin?: string }) {
+    const [updated] = await db.update(schema.tenantSettings)
+      .set({
+        companyName: payload.companyName,
+        companyAddress: payload.companyAddress,
+        companyPhone: payload.companyPhone,
+        companyGstin: payload.companyGstin,
+      })
+      .where(eq(schema.tenantSettings.tenantId, tenantId))
+      .returning();
+      
+    return updated;
+  }
   async getTenantSettings(tenantId: string) {
     const [settings] = await db.select().from(schema.tenantSettings).where(eq(schema.tenantSettings.tenantId, tenantId));
     return settings || {};

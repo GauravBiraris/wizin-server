@@ -128,6 +128,19 @@ export class AccountsController {
       }
     });
   }
+
+  @Get('tenant-details')
+  @Roles('ADMIN', 'MANAGER', 'SUPERVISOR', 'OPERATOR') // Even basic operators can view tenant details, but only higher roles can edit
+  async getTenantDetails(@Request() req: any) {
+    return this.accountsService.getTenantDetails(req.user.tenantId);
+  }
+
+  @Put('tenant-details')
+  @Roles('ADMIN', 'MANAGER') // Prevent basic operators from changing company details
+  async updateTenantDetails(@Body() payload: any, @Request() req: any) {
+    return this.accountsService.updateTenantDetails(req.user.tenantId, payload);
+  }
+  
 @Get('exports/csv')
   async downloadGeneralLedgerCSV(
     @Request() req: any,
